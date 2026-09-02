@@ -1,5 +1,6 @@
-data/
+/data/
 checkpoints/
 *.pt
 *.pth
+__pycache__/
 desktop.ini

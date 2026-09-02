@@ -5,11 +5,12 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
+import time
 
 import torch
 import yaml
 from torch import nn, optim
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,22 +36,34 @@ def main() -> None:
     args = parser.parse_args()
 
     config = load_config(args.config)
+    print("1. Config loaded")
     training_cfg = config.get("training", {})
+    print("Training config loaded")
+    print("Device initialized")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     train_set, val_set, _, input_scaler, target_scaler = prepare_datasets(
         args.data_dir,
-        split=training_cfg.get("split", (0.8, 0.1, 0.1)),
-        batch_size=int(training_cfg.get("stats_batch_size", training_cfg.get("batch_size", 16))),
-        seed=training_cfg.get("seed", 42),
+        split=training_cfg.get("split"),
+        batch_size=int(training_cfg.get("stats_batch_size", training_cfg.get("batch_size"))),
+        seed=training_cfg.get("seed"),
     )
 
-    batch_size = int(training_cfg.get("batch_size", 16))
-    num_workers = int(training_cfg.get("num_workers", 0))
+    max_train_samples = training_cfg.get("max_train_samples", None)
+
+    if max_train_samples is not None:
+        train_set = Subset(train_set, range(int(max_train_samples)))
+
+    print("2. Dataset prepared")
+
+    batch_size = int(training_cfg.get("batch_size"))
+    num_workers = int(training_cfg.get("num_workers"))
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+    print("3. DataLoaders created")
 
     model = build_model_from_config(config).to(device)
+    print("4. Model created")
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=float(training_cfg.get("lr", 1e-3)))
 
@@ -61,11 +74,16 @@ def main() -> None:
         optimizer=optimizer,
         criterion=criterion,
         device=device,
-        epochs=int(training_cfg.get("epochs", 50)),
+        epochs=int(training_cfg.get("epochs")),
         checkpoint_path=args.checkpoint,
     )
+    print("5. Training finished")
 
-    checkpoint = torch.load(args.checkpoint, map_location="cpu")
+    checkpoint = torch.load(
+    args.checkpoint,
+    map_location="cpu",
+    weights_only=False,
+    )
     checkpoint.update(
         {
             "config": config,
