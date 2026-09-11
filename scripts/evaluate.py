@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 import torch
+from torchgen import model
 import yaml
 
 
@@ -36,15 +37,23 @@ def main() -> None:
     training_cfg = config.get("training", {})
     _, _, test_set, _, target_scaler = prepare_datasets(
         args.data_dir,
-        split=training_cfg.get("split", (0.8, 0.1, 0.1)),
-        batch_size=int(training_cfg.get("stats_batch_size", training_cfg.get("batch_size", 16))),
-        seed=training_cfg.get("seed", 42),
+        split=training_cfg.get("split"),
+        batch_size=int(training_cfg.get("stats_batch_size", training_cfg.get("batch_size"))),
+        seed=training_cfg.get("seed"),
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = build_model_from_config(config).to(device)
-    checkpoint = torch.load(args.checkpoint, map_location=device)
-    model.load_state_dict(checkpoint["model_state_dict"])
+    checkpoint = torch.load(
+    args.checkpoint,
+    map_location=device,
+    weights_only=False,
+    )
+
+    state_dict = checkpoint["model_state_dict"]
+    state_dict.pop("_metadata", None)
+
+    model.load_state_dict(state_dict)
 
     rmse, relative_error = pricing_error(model, test_set, device=device, target_scaler=target_scaler)
     print(f"Test RMSE: {rmse:.6f}")

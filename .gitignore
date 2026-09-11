@@ -1,4 +1,4 @@
-/data/
+/data/final/
 checkpoints/
 *.pt
 *.pth

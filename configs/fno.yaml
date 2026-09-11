@@ -14,5 +14,6 @@ training:
   num_workers: 0
   stats_batch_size: 16 #128
   max_train_samples: 100 #10000
+  max_val_samples: 50 
 benchmarking:
   batch_size: 4 #16

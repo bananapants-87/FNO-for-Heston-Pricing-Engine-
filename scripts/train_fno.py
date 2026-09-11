@@ -12,7 +12,6 @@ import yaml
 from torch import nn, optim
 from torch.utils.data import DataLoader, Subset
 
-
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 if str(SRC) not in sys.path:
@@ -50,10 +49,12 @@ def main() -> None:
     )
 
     max_train_samples = training_cfg.get("max_train_samples", None)
-
     if max_train_samples is not None:
         train_set = Subset(train_set, range(int(max_train_samples)))
 
+    max_val = training_cfg.get("max_val_samples")
+    if max_val:
+        val_set = Subset(val_set, range(max_val))
     print("2. Dataset prepared")
 
     batch_size = int(training_cfg.get("batch_size"))
