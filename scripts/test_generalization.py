@@ -68,7 +68,7 @@ print("Model created ✅")
 # 4. Load checkpoint
 # ---------------------------------------------------------
 checkpoint = torch.load(
-    "checkpoints/best.pt",
+    "checkpoints/heston_fno.pth",
     map_location="cpu",
     weights_only=False,
 )
