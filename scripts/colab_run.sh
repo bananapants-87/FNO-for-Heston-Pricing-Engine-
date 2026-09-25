@@ -10,8 +10,8 @@ echo ""
 echo "============================================================"
 echo "Step 2: Ensuring dependencies and heston-fno package..."
 echo "============================================================"
-pip install -q neuraloperator
-pip install -q -e .
+pip install -q neuraloperator pyyaml
+pip install -q -e . --no-deps
 
 echo ""
 echo "============================================================"

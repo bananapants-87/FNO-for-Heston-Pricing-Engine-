@@ -1,6 +1,14 @@
 import torch
 
-from heston_fno.evaluation import ErrorSummary, absolute_error, mean_absolute_error, mean_relative_error, rmse, summarize_errors
+from heston_fno.evaluation import (
+	ErrorSummary,
+	absolute_error,
+	mean_absolute_error,
+	mean_relative_error,
+	relative_l2_error,
+	rmse,
+	summarize_errors,
+)
 
 
 def test_error_metrics_and_summary() -> None:
@@ -11,6 +19,8 @@ def test_error_metrics_and_summary() -> None:
 	assert torch.isclose(mean_absolute_error(prediction, target), torch.tensor(2.5))
 	assert torch.isclose(mean_relative_error(prediction, target), torch.tensor(((1 / 1) + (2 / 2) + (3 / 3) + (4 / 4)) / 4))
 	assert torch.isclose(rmse(prediction, target), torch.sqrt(torch.tensor(7.5)))
+	# diff = [1, 2, 3, 4], norm = sqrt(1+4+9+16)=sqrt(30); target norm = sqrt(1+4+9+16)=sqrt(30) => rel_l2 = 1.0
+	assert torch.isclose(relative_l2_error(prediction, target), torch.tensor(1.0))
 
 	summary = summarize_errors(prediction, target)
 	assert isinstance(summary, ErrorSummary)
@@ -19,4 +29,6 @@ def test_error_metrics_and_summary() -> None:
 		"mean_relative_error",
 		"rmse",
 		"max_absolute_error",
+		"relative_l2_error",
 	}
+

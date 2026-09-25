@@ -8,8 +8,15 @@ from .errors import (
 	mean_relative_error,
 	rmse,
 	relative_error,
+	relative_l2_error,
 	summarise_errors,
 	summarize_errors,
 )
-from .greeks import compute_delta, compute_vega
+from .greeks import (
+	compare_greeks,
+	compute_delta,
+	compute_reference_delta,
+	compute_reference_vega,
+	compute_vega,
+)
 from .pricing import predict_surface, pricing_error

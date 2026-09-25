@@ -43,6 +43,14 @@ def max_absolute_error(prediction: torch.Tensor, target: torch.Tensor) -> torch.
 	return absolute_error(prediction, target).max()
 
 
+def relative_l2_error(prediction: torch.Tensor, target: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
+	"""Return the relative L2 (Frobenius) error: ||prediction - target||_2 / (||target||_2 + eps)."""
+
+	diff_norm = torch.linalg.norm((prediction - target).reshape(-1), ord=2)
+	target_norm = torch.linalg.norm(target.reshape(-1), ord=2)
+	return diff_norm / (target_norm + eps)
+
+
 @dataclass(frozen=True)
 class ErrorSummary:
 	"""Compact collection of common error metrics."""
@@ -51,16 +59,20 @@ class ErrorSummary:
 	mre: torch.Tensor
 	rmse: torch.Tensor
 	max_ae: torch.Tensor
+	rel_l2: torch.Tensor | None = None
 
 	def to_dict(self) -> dict[str, float]:
 		"""Convert the summary to plain Python floats."""
 
-		return {
+		result = {
 			"mean_absolute_error": float(self.mae.item()),
 			"mean_relative_error": float(self.mre.item()),
 			"rmse": float(self.rmse.item()),
 			"max_absolute_error": float(self.max_ae.item()),
 		}
+		if self.rel_l2 is not None:
+			result["relative_l2_error"] = float(self.rel_l2.item())
+		return result
 
 
 def summarize_errors(prediction: torch.Tensor, target: torch.Tensor, eps: float = 1e-6) -> ErrorSummary:
@@ -71,7 +83,9 @@ def summarize_errors(prediction: torch.Tensor, target: torch.Tensor, eps: float 
 		mre=mean_relative_error(prediction, target, eps=eps),
 		rmse=rmse(prediction, target),
 		max_ae=max_absolute_error(prediction, target),
+		rel_l2=relative_l2_error(prediction, target),
 	)
 
 
 summarise_errors = summarize_errors
+
