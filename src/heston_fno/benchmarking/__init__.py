@@ -12,6 +12,6 @@ from .speedup import benchmark_speedup, time_fno_inference
 
 from .monte_carlo import (
     MonteCarloResult,
-    price_heston_call,
+    price_heston_call_mc,
     price_heston_call_mc_curve,
 )

@@ -242,3 +242,5 @@ def price_heston_call_mc(
         ci95_low=result.ci95_low[0],
         ci95_high=result.ci95_high[0],
     )
+# Backward compatibility
+price_heston_call = price_heston_call_mc
