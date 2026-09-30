@@ -315,8 +315,12 @@ def solve_heston_adi(
 	bc_s_lo = 0.0
 	bc_s_hi = s_arr[-1] - strike * np.exp(-r * maturity)
 
-	# Initial condition: European call payoff
+	# Initial condition: European call payoff on the full (S, v) grid.
+	# Construct the payoff over every variance value instead of a single-column
+	# array so the mixed-derivative stencil and the sweep operators have the
+	# expected broadcast shapes.
 	u = np.maximum(s_arr[:, None] - strike, 0.0)
+	u = np.tile(u, (1, len(v_arr)))
 
 	def apply_bcs(w: np.ndarray) -> None:
 		w[0, :]  = bc_s_lo
